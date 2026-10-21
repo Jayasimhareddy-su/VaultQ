@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Transactions | VaultQ</title><link rel="stylesheet" href="css/app.css"></head><body data-page="transactions">
+<aside class="sidebar">
+<div class="brand"><span class="brand-icon">V</span>VaultQ</div>
+<nav class="nav">
+<a data-page="dashboard" href="dashboard.html">⌂ <span>Home</span></a>
+<a data-page="portfolio" href="portfolio.html">◇ <span>Portfolio</span></a>
+<a data-page="investments" href="investments.html">↗ <span>Investments</span></a>
+<a data-page="transactions" href="transactions.html">◷ <span>Transactions</span></a>
+<a data-page="expenses" href="expenses.html">₹ <span>Expenses</span></a>
+<a data-page="goals" href="goals.html">◎ <span>Financial Goals</span></a>
+<a data-page="banks" href="banks.html">▤ <span>Bank Comparison</span></a>
+<a data-page="calculators" href="calculators.html">⌗ <span>Calculators</span></a>
+<a data-page="market" href="market.html">◉ <span>Market</span></a>
+<a data-page="assistant" href="assistant.html">✦ <span>VaultQ AI</span></a>
+<a data-page="settings" href="settings.html">⚙ <span>Settings</span></a>
+</nav>
+<div class="sidebar-bottom"><button class="logout" id="logout">↪ <span>Logout</span></button></div>
+</aside>
+<main class="main"><header class="topbar"><div><h1>Transactions</h1><p>Smart financial management with VaultQ.</p></div><div class="user"><div class="avatar" id="userInitial">V</div><div><strong id="userName">Loading...</strong><small>Investor</small></div></div></header>
+<section class="card"><div class="section-title"><div><h2>Transaction History</h2><p>Every buy and sell activity recorded by VaultQ.</p></div><input class="search" id="search" placeholder="Search transactions..."></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Asset</th><th>Type</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+</main><div class="toast" id="toast"></div><script src="js/app.js"></script><script>
+(async()=>{try{await user();const d=await api("/api/transactions");const all=d.transactions;function render(){const q=el("search").value.toLowerCase();el("rows").innerHTML=all.filter(x=>(x.asset_name+" "+x.symbol+" "+x.transaction_type).toLowerCase().includes(q)).map(x=>`<tr><td>${new Date(x.transaction_date).toLocaleString("en-IN")}</td><td><strong>${x.asset_name}</strong><br><small class="muted">${x.symbol||""}</small></td><td><span class="pill">${x.transaction_type}</span></td><td>${x.quantity}</td><td>${money(x.price)}</td><td>${money(x.total_amount)}</td></tr>`).join("")||`<tr><td colspan="6" class="empty">No transactions found.</td></tr>`}el("search").oninput=render;render()}catch(e){location.href="login.html"}})();
+</script></body></html>

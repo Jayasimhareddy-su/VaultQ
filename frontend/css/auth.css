@@ -1,0 +1,12 @@
+body{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 0,#0b2636 0,#06111d 45%)}
+.auth-wrap{width:min(460px,100%)}
+.back{display:inline-block;color:#8197ac;margin-bottom:20px}
+.auth-card{background:#0b1b2b;border:1px solid #1b344a;border-radius:20px;padding:35px}
+.brand-center{display:flex;justify-content:center;margin-bottom:24px}
+.auth-card h1{text-align:center;font-size:30px}.auth-card .sub{text-align:center;color:#8197ac;margin:8px 0 26px}
+.form-group{margin-bottom:17px}.form-group label{display:block;color:#9aafc2;font-size:14px;margin-bottom:7px}
+input,select{width:100%;background:#071827;color:#fff;border:1px solid #294158;border-radius:9px;padding:13px;outline:none}
+input:focus,select:focus{border-color:#39d98a}
+.auth-card .btn{width:100%;margin-top:8px}
+.message{min-height:22px;margin-top:14px;text-align:center;color:#8197ac;font-size:14px}
+.auth-foot{text-align:center;color:#8197ac;margin-top:20px}.auth-foot a{color:#39d98a;font-weight:700}

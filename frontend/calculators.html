@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Financial Calculators | VaultQ</title><link rel="stylesheet" href="css/app.css"></head><body data-page="calculators">
+<aside class="sidebar">
+<div class="brand"><span class="brand-icon">V</span>VaultQ</div>
+<nav class="nav">
+<a data-page="dashboard" href="dashboard.html">⌂ <span>Home</span></a>
+<a data-page="portfolio" href="portfolio.html">◇ <span>Portfolio</span></a>
+<a data-page="investments" href="investments.html">↗ <span>Investments</span></a>
+<a data-page="transactions" href="transactions.html">◷ <span>Transactions</span></a>
+<a data-page="expenses" href="expenses.html">₹ <span>Expenses</span></a>
+<a data-page="goals" href="goals.html">◎ <span>Financial Goals</span></a>
+<a data-page="banks" href="banks.html">▤ <span>Bank Comparison</span></a>
+<a data-page="calculators" href="calculators.html">⌗ <span>Calculators</span></a>
+<a data-page="market" href="market.html">◉ <span>Market</span></a>
+<a data-page="assistant" href="assistant.html">✦ <span>VaultQ AI</span></a>
+<a data-page="settings" href="settings.html">⚙ <span>Settings</span></a>
+</nav>
+<div class="sidebar-bottom"><button class="logout" id="logout">↪ <span>Logout</span></button></div>
+</aside>
+<main class="main"><header class="topbar"><div><h1>Financial Calculators</h1><p>Smart financial management with VaultQ.</p></div><div class="user"><div class="avatar" id="userInitial">V</div><div><strong id="userName">Loading...</strong><small>Investor</small></div></div></header>
+<section class="cards3"><div class="card"><div class="section-title"><div><h2>SIP Calculator</h2><p>Estimate future investment value.</p></div></div><div class="field"><label>Monthly Investment</label><input id="sipP" type="number" value="5000"></div><div class="field"><label>Expected Annual Return %</label><input id="sipR" type="number" value="12"></div><div class="field"><label>Years</label><input id="sipY" type="number" value="10"></div><br><button class="btn primary" id="sipBtn">Calculate</button><h2 id="sipOut" style="margin-top:18px">₹0</h2></div>
+<div class="card"><div class="section-title"><div><h2>Loan EMI</h2><p>Estimate monthly repayment.</p></div></div><div class="field"><label>Loan Amount</label><input id="loanP" type="number" value="500000"></div><div class="field"><label>Annual Interest %</label><input id="loanR" type="number" value="9"></div><div class="field"><label>Tenure Years</label><input id="loanY" type="number" value="5"></div><br><button class="btn primary" id="loanBtn">Calculate</button><div id="loanOut" style="margin-top:18px"></div></div>
+<div class="card"><div class="section-title"><div><h2>FD Calculator</h2><p>Estimate fixed deposit maturity.</p></div></div><div class="field"><label>Principal</label><input id="fdP" type="number" value="100000"></div><div class="field"><label>Annual Rate %</label><input id="fdR" type="number" value="6.5"></div><div class="field"><label>Years</label><input id="fdY" type="number" value="1"></div><br><button class="btn primary" id="fdBtn">Calculate</button><h2 id="fdOut" style="margin-top:18px">₹0</h2></div></section>
+</main><div class="toast" id="toast"></div><script src="js/app.js"></script><script>
+(async()=>{try{await user();el("sipBtn").onclick=()=>{const P=+el("sipP").value,r=+el("sipR").value/100/12,n=+el("sipY").value*12;const fv=P*((Math.pow(1+r,n)-1)/r)*(1+r);el("sipOut").textContent=money(fv)};el("loanBtn").onclick=()=>{const P=+el("loanP").value,r=+el("loanR").value/100/12,n=+el("loanY").value*12,m=r?P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1):P/n;el("loanOut").innerHTML=`<strong>Monthly EMI: ${money(m)}</strong><br><span class="muted">Total repayment: ${money(m*n)}<br>Total interest: ${money(m*n-P)}</span>`};el("fdBtn").onclick=()=>{const P=+el("fdP").value,r=+el("fdR").value/100,n=+el("fdY").value;const m=P*Math.pow(1+r,n);el("fdOut").textContent=money(m)};el("sipBtn").click();el("loanBtn").click();el("fdBtn").click()}catch(e){location.href="login.html"}})();
+</script></body></html>

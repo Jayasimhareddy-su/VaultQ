@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Financial Goals | VaultQ</title><link rel="stylesheet" href="css/app.css"></head><body data-page="goals">
+<aside class="sidebar">
+<div class="brand"><span class="brand-icon">V</span>VaultQ</div>
+<nav class="nav">
+<a data-page="dashboard" href="dashboard.html">⌂ <span>Home</span></a>
+<a data-page="portfolio" href="portfolio.html">◇ <span>Portfolio</span></a>
+<a data-page="investments" href="investments.html">↗ <span>Investments</span></a>
+<a data-page="transactions" href="transactions.html">◷ <span>Transactions</span></a>
+<a data-page="expenses" href="expenses.html">₹ <span>Expenses</span></a>
+<a data-page="goals" href="goals.html">◎ <span>Financial Goals</span></a>
+<a data-page="banks" href="banks.html">▤ <span>Bank Comparison</span></a>
+<a data-page="calculators" href="calculators.html">⌗ <span>Calculators</span></a>
+<a data-page="market" href="market.html">◉ <span>Market</span></a>
+<a data-page="assistant" href="assistant.html">✦ <span>VaultQ AI</span></a>
+<a data-page="settings" href="settings.html">⚙ <span>Settings</span></a>
+</nav>
+<div class="sidebar-bottom"><button class="logout" id="logout">↪ <span>Logout</span></button></div>
+</aside>
+<main class="main"><header class="topbar"><div><h1>Financial Goals</h1><p>Smart financial management with VaultQ.</p></div><div class="user"><div class="avatar" id="userInitial">V</div><div><strong id="userName">Loading...</strong><small>Investor</small></div></div></header>
+<section class="card"><div class="section-title"><div><h2>Create Financial Goal</h2><p>Plan for education, travel, emergency funds, purchases and more.</p></div></div><form id="form"><div class="formgrid"><div class="field"><label>Goal Name</label><input id="name" required placeholder="Emergency Fund"></div><div class="field"><label>Target Amount</label><input id="target" type="number" min="1" required></div><div class="field"><label>Current Amount</label><input id="current" type="number" min="0" value="0"></div><div class="field"><label>Target Date</label><input id="date" type="date"></div></div><div class="actions"><button class="btn primary">Create Goal</button></div></form></section><br><section class="card"><div class="section-title"><div><h2>Your Goals</h2><p>Track progress toward each financial target.</p></div></div><div id="goals"></div></section>
+</main><div class="toast" id="toast"></div><script src="js/app.js"></script><script>
+(async()=>{try{await user();async function load(){const d=await api("/api/goals");el("goals").innerHTML=d.goals.map(g=>{const p=Math.min(100,g.target_amount?g.current_amount/g.target_amount*100:0);return `<div class="goal"><div style="display:flex;justify-content:space-between;gap:10px"><strong>${g.name}</strong><span class="muted">${money(g.current_amount)} / ${money(g.target_amount)}</span></div><div class="progress"><span style="width:${p}%"></span></div><div style="display:flex;justify-content:space-between"><small class="muted">${p.toFixed(1)}% complete ${g.target_date?"• "+g.target_date:""}</small><span><button class="btn" data-update="${g.id}">Update</button> <button class="btn danger" data-delete="${g.id}">Delete</button></span></div></div>`}).join("")||`<div class="empty">Create your first financial goal.</div>`;document.querySelectorAll("[data-update]").forEach(b=>b.onclick=async()=>{const v=prompt("Enter current saved amount:");if(v!==null)await api("/api/goals/"+b.dataset.update,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({current_amount:+v})}),load()});document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=async()=>{if(confirm("Delete this goal?")){await api("/api/goals/"+b.dataset.delete,{method:"DELETE"});load()}})}el("form").onsubmit=async e=>{e.preventDefault();await api("/api/goals",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:el("name").value,target_amount:+el("target").value,current_amount:+el("current").value,target_date:el("date").value})});e.target.reset();load()};load()}catch(e){location.href="login.html"}})();
+</script></body></html>

@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Portfolio | VaultQ</title><link rel="stylesheet" href="css/app.css"></head><body data-page="portfolio">
+<aside class="sidebar">
+<div class="brand"><span class="brand-icon">V</span>VaultQ</div>
+<nav class="nav">
+<a data-page="dashboard" href="dashboard.html">⌂ <span>Home</span></a>
+<a data-page="portfolio" href="portfolio.html">◇ <span>Portfolio</span></a>
+<a data-page="investments" href="investments.html">↗ <span>Investments</span></a>
+<a data-page="transactions" href="transactions.html">◷ <span>Transactions</span></a>
+<a data-page="expenses" href="expenses.html">₹ <span>Expenses</span></a>
+<a data-page="goals" href="goals.html">◎ <span>Financial Goals</span></a>
+<a data-page="banks" href="banks.html">▤ <span>Bank Comparison</span></a>
+<a data-page="calculators" href="calculators.html">⌗ <span>Calculators</span></a>
+<a data-page="market" href="market.html">◉ <span>Market</span></a>
+<a data-page="assistant" href="assistant.html">✦ <span>VaultQ AI</span></a>
+<a data-page="settings" href="settings.html">⚙ <span>Settings</span></a>
+</nav>
+<div class="sidebar-bottom"><button class="logout" id="logout">↪ <span>Logout</span></button></div>
+</aside>
+<main class="main"><header class="topbar"><div><h1>Portfolio</h1><p>Smart financial management with VaultQ.</p></div><div class="user"><div class="avatar" id="userInitial">V</div><div><strong id="userName">Loading...</strong><small>Investor</small></div></div></header>
+<div class="hero-banner"><h2>Portfolio intelligence</h2><p>Review every holding and understand where your money is allocated.</p></div>
+<section class="card"><div class="section-title"><div><h2>Holdings</h2><p>Current investment positions</p></div><a class="btn primary" href="investments.html">Manage Investments</a></div><div class="table-wrap"><table><thead><tr><th>Investment</th><th>Type</th><th>Quantity</th><th>Invested</th><th>Current</th><th>Profit/Loss</th><th>Return</th></tr></thead><tbody id="holdings"></tbody></table></div></section>
+</main><div class="toast" id="toast"></div><script src="js/app.js"></script><script>
+(async()=>{try{await user();const d=await api("/api/investments");el("holdings").innerHTML=d.investments.map(x=>{const i=x.quantity*x.buy_price,c=x.quantity*x.current_price,p=c-i;return `<tr><td><strong>${x.asset_name}</strong><br><small class="muted">${x.symbol||""}</small></td><td><span class="pill">${x.asset_type}</span></td><td>${x.quantity}</td><td>${money(i)}</td><td>${money(c)}</td><td class="${p>=0?"positive":"negative"}">${p>=0?"+":""}${money(p)}</td><td class="${p>=0?"positive":"negative"}">${pct(i?p/i*100:0)}</td></tr>`}).join("")||`<tr><td colspan="7" class="empty">No holdings.</td></tr>`}catch(e){location.href="login.html"}})();
+</script></body></html>

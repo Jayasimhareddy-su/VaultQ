@@ -1,0 +1,19 @@
+{
+  "name": "vaultq",
+  "version": "4.0.0",
+  "description": "VaultQ final professional financial management platform with account-aware AI, market intelligence, multilingual UI and bank comparison",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "better-sqlite3": "^12.4.1",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

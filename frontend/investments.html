@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Investments | VaultQ</title><link rel="stylesheet" href="css/app.css"></head><body data-page="investments">
+<aside class="sidebar">
+<div class="brand"><span class="brand-icon">V</span>VaultQ</div>
+<nav class="nav">
+<a data-page="dashboard" href="dashboard.html">⌂ <span>Home</span></a>
+<a data-page="portfolio" href="portfolio.html">◇ <span>Portfolio</span></a>
+<a data-page="investments" href="investments.html">↗ <span>Investments</span></a>
+<a data-page="transactions" href="transactions.html">◷ <span>Transactions</span></a>
+<a data-page="expenses" href="expenses.html">₹ <span>Expenses</span></a>
+<a data-page="goals" href="goals.html">◎ <span>Financial Goals</span></a>
+<a data-page="banks" href="banks.html">▤ <span>Bank Comparison</span></a>
+<a data-page="calculators" href="calculators.html">⌗ <span>Calculators</span></a>
+<a data-page="market" href="market.html">◉ <span>Market</span></a>
+<a data-page="assistant" href="assistant.html">✦ <span>VaultQ AI</span></a>
+<a data-page="settings" href="settings.html">⚙ <span>Settings</span></a>
+</nav>
+<div class="sidebar-bottom"><button class="logout" id="logout">↪ <span>Logout</span></button></div>
+</aside>
+<main class="main"><header class="topbar"><div><h1>Investments</h1><p>Smart financial management with VaultQ.</p></div><div class="user"><div class="avatar" id="userInitial">V</div><div><strong id="userName">Loading...</strong><small>Investor</small></div></div></header>
+<section class="card"><div class="section-title"><div><h2>Add Investment</h2><p>Add a holding to your portfolio.</p></div></div><form id="form"><div class="formgrid"><div class="field"><label>Asset Name</label><input id="name" required placeholder="Tata Motors"></div><div class="field"><label>Symbol</label><input id="symbol" placeholder="TATAMOTORS"></div><div class="field"><label>Asset Type</label><select id="type" required><option value="">Select</option><option>Stocks</option><option>Mutual Funds</option><option>Gold</option><option>Bonds</option><option>Crypto</option><option>Other</option></select></div><div class="field"><label>Quantity</label><input id="qty" type="number" min=".01" step=".01" required></div><div class="field"><label>Buy Price</label><input id="buy" type="number" min=".01" step=".01" required></div><div class="field"><label>Current Price</label><input id="current" type="number" min=".01" step=".01" required></div></div><div class="actions"><button class="btn primary">Add Investment</button><span id="msg" class="muted"></span></div></form></section><br><section class="card"><div class="section-title"><div><h2>Your Holdings</h2><p>Sell removes the position and records a SELL transaction.</p></div></div><div class="table-wrap"><table><thead><tr><th>Investment</th><th>Type</th><th>Qty</th><th>Buy</th><th>Current</th><th>P/L</th><th></th></tr></thead><tbody id="rows"></tbody></table></div></section>
+</main><div class="toast" id="toast"></div><script src="js/app.js"></script><script>
+(async()=>{try{await user();async function load(){const d=await api("/api/investments");el("rows").innerHTML=d.investments.map(x=>{const p=x.quantity*(x.current_price-x.buy_price);return `<tr><td><strong>${x.asset_name}</strong><br><small class="muted">${x.symbol||""}</small></td><td><span class="pill">${x.asset_type}</span></td><td>${x.quantity}</td><td>${money(x.buy_price)}</td><td>${money(x.current_price)}</td><td class="${p>=0?"positive":"negative"}">${p>=0?"+":""}${money(p)}</td><td><button class="btn danger" data-id="${x.id}">Sell</button></td></tr>`}).join("")||`<tr><td colspan="7" class="empty">No investments yet.</td></tr>`;document.querySelectorAll("[data-id]").forEach(b=>b.onclick=async()=>{if(confirm("Sell/remove this investment?")){await api("/api/investments/"+b.dataset.id,{method:"DELETE"});load()}})}el("form").onsubmit=async e=>{e.preventDefault();el("msg").textContent="Adding...";try{await api("/api/investments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({asset_name:el("name").value,symbol:el("symbol").value,asset_type:el("type").value,quantity:+el("qty").value,buy_price:+el("buy").value,current_price:+el("current").value})});e.target.reset();el("msg").textContent="Added successfully.";load()}catch(x){el("msg").textContent=x.message}};load()}catch(e){location.href="login.html"}})();
+</script></body></html>

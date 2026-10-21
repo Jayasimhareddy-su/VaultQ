@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bank Comparison | VaultQ</title><link rel="stylesheet" href="css/app.css"><style>.bank-directory-intro{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.025);color:var(--muted)}.bank-directory-intro strong{color:var(--text)}.bank-directory-intro span{font-size:13px}<style>.bank-controls{display:grid;grid-template-columns:1.5fr 1.4fr 1fr 1fr 1fr;gap:10px;align-items:stretch}.bank-directory-intro{min-width:0}.best-value{color:var(--accent);font-weight:800}.best-tag{display:inline-block;margin-left:7px;padding:3px 6px;border-radius:999px;background:rgba(57,217,138,.1);font-size:10px;color:var(--accent)}@media(max-width:1200px){.bank-controls{grid-template-columns:1fr 1fr 1fr}.bank-directory-intro{grid-column:1/-1}}@media(max-width:700px){.bank-controls{grid-template-columns:1fr}.bank-directory-intro{grid-column:auto}}</style></head>
+<body data-page="banks">
+<aside class="sidebar"><div class="brand"><span class="brand-icon">V</span>VaultQ</div><nav class="nav">
+<a data-page="dashboard" href="dashboard.html">⌂ <span>Home</span></a><a data-page="portfolio" href="portfolio.html">◇ <span>Portfolio</span></a><a data-page="investments" href="investments.html">↗ <span>Investments</span></a><a data-page="transactions" href="transactions.html">◷ <span>Transactions</span></a><a data-page="expenses" href="expenses.html">₹ <span>Expenses</span></a><a data-page="goals" href="goals.html">◎ <span>Financial Goals</span></a><a data-page="banks" href="banks.html">▤ <span>Bank Comparison</span></a><a data-page="calculators" href="calculators.html">⌗ <span>Calculators</span></a><a data-page="market" href="market.html">◉ <span>Market</span></a><a data-page="assistant" href="assistant.html">✦ <span>VaultQ AI</span></a><a data-page="settings" href="settings.html">⚙ <span>Settings</span></a>
+</nav><div class="sidebar-bottom"><button class="logout" id="logout">↪ <span>Logout</span></button></div></aside>
+<main class="main">
+<header class="topbar"><div><div class="eyebrow"><span class="status-dot"></span><span>LIVE BANK-RATE DATA</span></div><h1>Bank comparison</h1><p>Compare Indian banks using a live public rate dataset with official-source provenance.</p></div><div class="user"><div class="avatar" id="userInitial">V</div><div><strong id="userName">Loading...</strong><small>Investor</small></div></div></header>
+<section class="hero-banner bank-hero"><div class="section-title"><div><div class="eyebrow">SMART COMPARE</div><h2>India-wide bank directory</h2><p id="bankFeedStatus">Bank directory ready • live rates update in the background</p></div><div class="bank-feed-meta"><span class="api-badge" id="bankCount">Directory ready</span><span class="pill" id="bankUpdated">Directory ready</span></div></div><div class="bank-controls"><div class="bank-directory-intro"><strong>Select banks to compare</strong><span>Choose two or more banks and VaultQ will build the comparison below.</span></div><input class="search" id="bankSearch" placeholder="Search bank name..." autocomplete="off"><select id="bankCategory"><option value="ALL">All bank types</option></select><select id="bankState"><option value="ALL">All service areas</option></select><select id="bankSort"><option value="category">Sort: Category</option><option value="name">Sort: Bank name</option><option value="peak">Sort: Peak FD</option><option value="savings">Sort: Savings rate</option><option value="fd">Sort: 1-year FD</option></select></div><div class="bank-table-wrap"><table class="bank-directory" id="bankDirectory"><thead><tr><th>Select</th><th>Bank</th><th>Category</th><th>Service area</th><th>Peak FD</th><th>Senior peak</th><th>Savings</th><th>1-Yr FD</th><th>Checked</th><th>Action</th></tr></thead><tbody id="bankPicker"></tbody></table></div><div class="actions"><button class="btn primary" id="compareBtn" disabled>Compare selected banks</button><button class="btn" id="clearBtn">Clear selection</button><span class="muted" id="selectionCount">0 selected</span></div></section>
+<section class="card comparison-end" id="comparisonCard" style="display:none"><div class="section-title"><div><div class="eyebrow">YOUR SHORTLIST</div><h2>Side-by-side comparison</h2><p>Rates come from the connected bank-rate dataset. 1-year FD means the matching general-public retail band around 365 days.</p></div><span class="pill" id="compareMeta"></span></div><div class="table-wrap"><table id="comparisonTable"></table></div></section>
+<section class="card bank-data-note"><strong>Rate freshness</strong><p>The bank directory is refreshed from RateScan.in, which tracks 300+ Indian banks and attaches source URLs, effective dates and check dates to individual rates. VaultQ displays the rate data but you should still verify the final product terms with the bank before acting.</p></section>
+</main>
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script><script>
+let banks=[];let selected=new Set();let chosenFile=null;
+const bankKey=b=>String(b?.id ?? '');
+const labels={category:'Bank type',states:'Service area',peakFdRate:'Highest verified general FD',seniorPeakRate:'Senior citizen peak rate',savingsRate:'Savings account interest',fdRate:'1-year standard FD',freshness:'Rate checked'};
+const rate=v=>v==null?'Not available':Number(v).toFixed(2)+'%';
+function categoryLabel(value){
+  const map={PUBLIC:'Public Sector',PRIVATE:'Private Sector',SMALL_FINANCE:'Small Finance',REGIONAL_RURAL:'Regional Rural Bank',PAYMENTS_BANK:'Payments Bank',FOREIGN:'Foreign Bank',COOPERATIVE:'Co-operative Bank',BANK:'Other Bank'};
+  return map[value]||String(value||'Other Bank').replaceAll('_',' ');
+}
+function stateText(b){
+  return (b.states||[]).includes('ALL')?'Pan-India':((b.states||[]).slice(0,4).join(' · ')||'Not listed');
+}
+function updateSelection(){
+  document.getElementById('selectionCount').textContent=`${selected.size} selected`;
+  document.getElementById('compareBtn').disabled=selected.size<2;
+  document.querySelectorAll('.bank-row').forEach(row=>{
+    const is=selected.has(String(row.dataset.id));
+    row.classList.toggle('selected',is);
+    const cb=row.querySelector('input[type="checkbox"]');
+    if(cb) cb.checked=is;
+    const btn=row.querySelector('.row-select-btn');
+    if(btn) btn.textContent=is?'Remove':'Add';
+  });
+  if(selected.size>=2) renderComparison(false);
+  else document.getElementById('comparisonCard').style.display='none';
+}
+function filtered(){
+  const cat=document.getElementById('bankCategory').value;
+  const state=document.getElementById('bankState').value;
+  const search=(document.getElementById('bankSearch')?.value||'').trim().toLowerCase();
+  return banks.filter(b=>
+    (!search||String(b.name||'').toLowerCase().includes(search))&&
+    (cat==='ALL'||b.category===cat)&&
+    (state==='ALL'||(b.states||[]).includes(state)||(b.states||[]).includes('ALL'))
+  );
+}
+function renderPicker(){
+  const list=filtered();
+  const tbody=document.getElementById('bankPicker');
+  if(!list.length){
+    tbody.innerHTML='<tr><td colspan="10" class="empty">No banks match this filter.</td></tr>';
+    updateSelection();
+    return;
+  }
+  const mode=document.getElementById('bankSort')?.value||'category';
+  const sorted=[...list].sort((a,b)=>{if(mode==='name')return a.name.localeCompare(b.name);if(mode==='peak')return Number(b.peakFdRate??-Infinity)-Number(a.peakFdRate??-Infinity)||a.name.localeCompare(b.name);if(mode==='savings')return Number(b.savingsRate??-Infinity)-Number(a.savingsRate??-Infinity)||a.name.localeCompare(b.name);if(mode==='fd')return Number(b.fdRate??-Infinity)-Number(a.fdRate??-Infinity)||a.name.localeCompare(b.name);return categoryLabel(a.category).localeCompare(categoryLabel(b.category))||a.name.localeCompare(b.name)});
+  let lastCategory='';
+  const rows=[];
+  sorted.forEach(b=>{
+    const cat=categoryLabel(b.category);
+    if(mode==='category'&&cat!==lastCategory){
+      lastCategory=cat;
+      rows.push(`<tr class="bank-category-row"><td colspan="10"><strong>${escapeHtml(cat)}</strong><span>${sorted.filter(x=>categoryLabel(x.category)===cat).length} banks</span></td></tr>`);
+    }
+    const selectedNow=selected.has(bankKey(b));
+    const peak=b.peakFdRate!=null?rate(b.peakFdRate):'N/A';
+    const senior=b.seniorPeakRate!=null?rate(b.seniorPeakRate):'N/A';
+    const checked=b.checkedAt?new Date(b.checkedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'Not available';
+    rows.push(`<tr class="bank-row ${selectedNow?'selected':''}" data-id="${escapeHtml(bankKey(b))}">
+      <td><label class="table-check"><input type="checkbox" ${selectedNow?'checked':''} aria-label="Select ${escapeHtml(b.name)}"><span></span></label></td>
+      <td><div class="bank-name-cell"><div class="bank-mark small">${escapeHtml((b.name||'BK').split(/\s+/).map(x=>x[0]).join('').slice(0,2))}</div><div><strong>${escapeHtml(b.name)}</strong><small>${escapeHtml(b.id||'')}</small></div></div></td>
+      <td><span class="category-pill">${escapeHtml(cat)}</span></td>
+      <td>${escapeHtml(stateText(b))}</td>
+      <td><strong>${peak}</strong><small>${escapeHtml(b.peakFdTenure||'Peak tracked FD')}</small></td>
+      <td>${senior}</td>
+      <td>${rate(b.savingsRate)}</td>
+      <td>${rate(b.fdRate)}</td>
+      <td><span class="verified-dot">●</span> ${escapeHtml(checked)}</td>
+      <td><button type="button" class="row-select-btn ${selectedNow?'remove':''}">${selectedNow?'Remove':'Add'}</button></td>
+    </tr>`);
+  });
+  tbody.innerHTML=rows.join('');
+  tbody.querySelectorAll('.bank-row').forEach(row=>{
+    const id=String(row.dataset.id);
+    const toggle=()=>{if(selected.has(id)) selected.delete(id); else selected.add(id); updateSelection();};
+    row.querySelector('input[type="checkbox"]').addEventListener('change',toggle);
+    row.querySelector('.row-select-btn').addEventListener('click',toggle);
+  });
+  updateSelection();
+}
+function renderComparison(shouldScroll=true){
+  const chosen=banks.filter(b=>selected.has(bankKey(b)));
+  if(chosen.length<2){toast('Select at least 2 banks to compare.');return;}
+  document.getElementById('comparisonCard').style.display='block';
+  document.getElementById('compareMeta').textContent=`${chosen.length} banks`;
+  const rows=[['category',b=>categoryLabel(b.category)],['states',stateText],['peakFdRate',b=>b.peakFdRate!=null?`${rate(b.peakFdRate)} (${b.peakFdTenure||'Peak tenure'})`:'Not available'],['seniorPeakRate',b=>b.seniorPeakRate!=null?`${rate(b.seniorPeakRate)} (${b.seniorPeakTenure||'Peak tenure'})`:'Not available'],['fdRate',b=>rate(b.fdRate)],['savingsRate',b=>rate(b.savingsRate)],['freshness',b=>b.checkedAt?new Date(b.checkedAt).toLocaleDateString('en-IN'):'Source date unavailable']];
+  document.getElementById('comparisonTable').innerHTML=`<thead><tr><th>Feature</th>${chosen.map(b=>`<th>${escapeHtml(b.name)}</th>`).join('')}</tr></thead><tbody>${rows.map(([key,fn])=>{const vals=chosen.map(fn);const nums=['savingsRate','fdRate','peakFdRate','seniorPeakRate'].includes(key);const numsRaw=chosen.map(b=>Number(b[key]??-Infinity));const best=nums?Math.max(...numsRaw):null;return `<tr><th>${labels[key]}</th>${chosen.map((b,i)=>{const isBest=nums&&Number(b[key])===best&&Number.isFinite(Number(b[key]));return `<td class="${isBest?'best-value':''}">${escapeHtml(vals[i])}${isBest?'<span class="best-tag">Best</span>':''}</td>`}).join('')}</tr>`}).join('')}</tbody>`;
+  if(shouldScroll) document.getElementById('comparisonCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+const BANK_CACHE_KEY='vaultq-bank-directory-v2';
+const RATE_CACHE_KEY='vaultq-bank-rates-v2';
+const fallbackDirectory=[
+ ['sbi','State Bank of India','PUBLIC'],['hdfc-bank','HDFC Bank','PRIVATE'],['icici-bank','ICICI Bank','PRIVATE'],['axis-bank','Axis Bank','PRIVATE'],
+ ['kotak-mahindra-bank','Kotak Mahindra Bank','PRIVATE'],['punjab-national-bank','Punjab National Bank','PUBLIC'],['bank-of-baroda','Bank of Baroda','PUBLIC'],['canara-bank','Canara Bank','PUBLIC'],
+ ['union-bank-of-india','Union Bank of India','PUBLIC'],['indian-bank','Indian Bank','PUBLIC'],['bank-of-india','Bank of India','PUBLIC'],['central-bank-of-india','Central Bank of India','PUBLIC'],
+ ['uco-bank','UCO Bank','PUBLIC'],['bank-of-maharashtra','Bank of Maharashtra','PUBLIC'],['indian-overseas-bank','Indian Overseas Bank','PUBLIC'],['punjab-and-sind-bank','Punjab & Sind Bank','PUBLIC'],
+ ['idbi-bank','IDBI Bank','PUBLIC'],['idfc-first-bank','IDFC FIRST Bank','PRIVATE'],['indusind-bank','IndusInd Bank','PRIVATE'],['yes-bank','YES BANK','PRIVATE'],['federal-bank','Federal Bank','PRIVATE'],
+ ['rbl-bank','RBL Bank','PRIVATE'],['bandhan-bank','Bandhan Bank','PRIVATE'],['south-indian-bank','South Indian Bank','PRIVATE'],['karur-vysya-bank','Karur Vysya Bank','PRIVATE'],['city-union-bank','City Union Bank','PRIVATE'],
+ ['au-small-finance-bank','AU Small Finance Bank','SMALL_FINANCE'],['equitas-small-finance-bank','Equitas Small Finance Bank','SMALL_FINANCE'],['unity-small-finance-bank','Unity Small Finance Bank','SMALL_FINANCE'],
+ ['suryoday-small-finance-bank','Suryoday Small Finance Bank','SMALL_FINANCE'],['ujjivan-small-finance-bank','Ujjivan Small Finance Bank','SMALL_FINANCE'],['esaf-small-finance-bank','ESAF Small Finance Bank','SMALL_FINANCE'],
+ ['jana-small-finance-bank','Jana Small Finance Bank','SMALL_FINANCE'],['andhra-pradesh-grameena-bank','Andhra Pradesh Grameena Bank','REGIONAL_RURAL']
+].map(([id,name,category])=>({id,name,type:category,category,states:['ALL'],website:'',savingsRate:null,fdRate:null,peakFdRate:null,peakFdTenure:null,seniorPeakRate:null,seniorPeakTenure:null,checkedAt:null}));
+function readCache(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
+function writeCache(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+function applyDirectory(list,generatedAt,source='cache'){
+  banks=(list||[]).map(b=>({...b,id:String(b.id),name:b.name||b.bankName||String(b.id),category:b.category||b.type||'BANK',states:b.states||[]}));
+  const count=document.getElementById('bankCount'),updated=document.getElementById('bankUpdated'),status=document.getElementById('bankFeedStatus');
+  count.textContent=`${banks.length} banks`;
+  updated.textContent=source==='cache'?'Cached • refreshing…':(generatedAt?`Updated ${new Date(generatedAt).toLocaleString('en-IN')}`:'Directory ready');
+  status.textContent=source==='cache'?`${banks.length} banks loaded instantly • refreshing rates in background`:`${banks.length} banks loaded • rates update in background`;
+  const categories=[...new Set(banks.map(b=>b.category).filter(Boolean))].sort((a,b)=>categoryLabel(a).localeCompare(categoryLabel(b)));
+  document.getElementById('bankCategory').innerHTML='<option value="ALL">All bank types</option>'+categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(categoryLabel(c))}</option>`).join('');
+  const states=[...new Set(banks.flatMap(b=>b.states||[]).filter(x=>x&&x!=='ALL'))].sort();
+  document.getElementById('bankState').innerHTML='<option value="ALL">All service areas</option>'+states.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
+  renderPicker();
+}
+function mergeCachedRates(){
+  const cache=readCache(RATE_CACHE_KEY)||{};
+  let changed=false;
+  banks=banks.map(b=>{const r=cache[b.id];if(!r)return b;changed=true;return {...b,...r}});
+  if(changed) renderPicker();
+}
+function normalizeRatePayload(data){
+  const rows=Array.isArray(data?.rates)?data.rates:(Array.isArray(data)?data:(Array.isArray(data?.data?.rates)?data.data.rates:[]));
+  return rows;
+}
+function extractRates(data,bank){
+  const rows=normalizeRatePayload(data);
+  const valid=rows.filter(r=>!r.amount||Number(r.amount.minAmount||0)===0);
+  const generalFd=valid.filter(r=>r.product==='FD'&&r.customer==='GENERAL');
+  const seniorFd=valid.filter(r=>r.product==='FD'&&r.customer==='SENIOR');
+  const savings=valid.filter(r=>r.product==='SAVINGS');
+  const oneYear=generalFd.filter(r=>r.tenure&&Number(r.tenure.minDays||0)<=365&&(r.tenure.maxDays==null||Number(r.tenure.maxDays)>=365));
+  const peak=generalFd.sort((a,b)=>Number(b.ratePercent)-Number(a.ratePercent))[0]||null;
+  const senior=seniorFd.sort((a,b)=>Number(b.ratePercent)-Number(a.ratePercent))[0]||null;
+  const sav=savings.sort((a,b)=>Number(b.ratePercent)-Number(a.ratePercent))[0]||null;
+  const fd=oneYear.sort((a,b)=>Number(b.ratePercent)-Number(a.ratePercent))[0]||null;
+  const checked=[peak,senior,sav,fd].map(r=>Date.parse(r?.source?.checkedAt||'')||0).reduce((a,v)=>Math.max(a,v),0);
+  return {id:String(bank.id),savingsRate:sav?.ratePercent??null,fdRate:fd?.ratePercent??null,peakFdRate:peak?.ratePercent??null,peakFdTenure:peak?.tenure?.label||null,seniorPeakRate:senior?.ratePercent??null,seniorPeakTenure:senior?.tenure?.label||null,checkedAt:checked||null};
+}
+async function refreshBankRates(){
+  try{
+    const data=await api('/api/banks');
+    if(Array.isArray(data.banks)&&data.banks.length){
+      writeCache(BANK_CACHE_KEY,{banks:data.banks,generatedAt:data.generatedAt||null});
+      applyDirectory(data.banks,data.generatedAt,data.source==='RateScan.in'?'live':'cache');
+      const fresh=data.banks.filter(b=>b.checkedAt).length;
+      document.getElementById('bankFeedStatus').textContent=`${data.banks.length} banks available • ${fresh?fresh+' rates with verified dates • ':''}background sync active`;
+    }
+  }catch(e){ console.warn('Server bank cache refresh skipped',e.message); }
+}
+async function loadBanks(){
+  // The browser talks only to VaultQ. The server owns the external API connection and cache.
+  // This makes the page instant even when RateScan is slow or temporarily unavailable.
+  const cached=readCache(BANK_CACHE_KEY);
+  if(cached?.banks?.length){
+    applyDirectory(cached.banks,cached.generatedAt,'cache');
+    mergeCachedRates();
+  }else{
+    applyDirectory(fallbackDirectory,null,'fallback');
+    mergeCachedRates();
+  }
+  try{
+    const data=await api('/api/banks');
+    if(Array.isArray(data.banks)&&data.banks.length){
+      writeCache(BANK_CACHE_KEY,{banks:data.banks,generatedAt:data.generatedAt||null});
+      const liveById=new Map(data.banks.map(b=>[String(b.id),b]));
+      const enriched=fallbackDirectory.map(base=>({
+        ...base,
+        ...(liveById.get(String(base.id))||{})
+      }));
+      applyDirectory(enriched,data.generatedAt,data.source==='RateScan.in'?'live':'cache');
+    }
+  }catch(e){
+    console.warn('VaultQ bank cache unavailable, keeping local 34-bank directory',e.message);
+  }
+  // The server continues its background refresh. This call simply re-reads the local cache.
+  refreshBankRates().catch(()=>{});
+}
+
+(async()=>{try{applyDirectory(fallbackDirectory,null,'fallback');mergeCachedRates();const bankLoad=loadBanks();await user();await bankLoad;document.getElementById('bankCategory').onchange=renderPicker;document.getElementById('bankState').onchange=renderPicker;document.getElementById('bankSort').onchange=renderPicker;document.getElementById('bankSearch').oninput=renderPicker;document.getElementById('compareBtn').onclick=()=>renderComparison(true);document.getElementById('clearBtn').onclick=()=>{selected.clear();renderPicker();document.getElementById('comparisonCard').style.display='none'}}catch(e){toast(e.message);setTimeout(()=>location.href='login.html',1000)}})();
+</script></body></html>
