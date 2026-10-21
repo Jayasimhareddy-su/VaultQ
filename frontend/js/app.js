@@ -36,23 +36,7 @@ function setupMobileExperience(){
     overlay.addEventListener("click",()=>setMobileNav(false));
     document.body.appendChild(overlay);
   }
-  if(!el("mobileBottomNav")){
-    const page=document.body.dataset.page||"dashboard";
-    const items=[
-      ["dashboard","dashboard.html","⌂","Home"],
-      ["portfolio","portfolio.html","◇","Portfolio"],
-      ["investments","investments.html","↗","Invest"],
-      ["expenses","expenses.html","₹","Expenses"]
-    ];
-    const nav=document.createElement("nav");
-    nav.id="mobileBottomNav";
-    nav.className="mobile-bottom-nav";
-    nav.setAttribute("aria-label","Mobile navigation");
-    nav.innerHTML=items.map(([key,href,icon,label])=>`<a href="${href}" class="${page===key?'active':''}" data-page="${key}"><span>${icon}</span><small>${label}</small></a>`).join("")+`<button type="button" class="mobile-more" id="mobileMore"><span>☰</span><small>More</small></button>`;
-    document.body.appendChild(nav);
-    el("mobileMore").addEventListener("click",()=>setMobileNav(true));
-  }
-  document.querySelectorAll(".sidebar a").forEach(a=>a.addEventListener("click",()=>setMobileNav(false)));
+  document.querySelectorAll(".sidebar a,.sidebar .logout").forEach(a=>a.addEventListener("click",()=>setMobileNav(false)));
   document.addEventListener("keydown",e=>{if(e.key==="Escape")setMobileNav(false)});
 }
 setupMobileExperience();

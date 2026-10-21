@@ -93,17 +93,17 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 button,a,select,input{touch-action:manipulation}
 @media(max-width:850px){
   :root{--mobile-gutter:14px}
-  body{padding-bottom:76px}
+  body{padding-bottom:24px}
   body.nav-open{overflow:hidden}
   .main{width:100%;max-width:none;margin:0;padding:14px var(--mobile-gutter) 24px}
   .sidebar{width:min(320px,88vw);padding:18px 12px;transform:translateX(-110%);border-right:1px solid var(--border);box-shadow:18px 0 60px rgba(0,0,0,.35);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
   .sidebar.open{transform:translateX(0)}
   .brand{padding:2px 9px 20px;font-size:21px}
   .brand-icon{width:40px;height:40px;border-radius:12px}
-  .nav{gap:3px;overflow-y:auto;padding-right:2px}
+  .nav{gap:3px;overflow-y:auto;padding-right:6px;min-height:0;flex:1;scrollbar-width:thin;scrollbar-color:var(--border) transparent}.nav::-webkit-scrollbar{width:5px}.nav::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
   .nav a,.logout{min-height:46px;padding:12px 13px;border-radius:12px}
   .nav a.active{box-shadow:inset 3px 0 var(--accent)}
-  .sidebar-bottom{padding-top:12px}
+  .sidebar-bottom{padding-top:12px;flex:0 0 auto;background:linear-gradient(to top,color-mix(in srgb,var(--panel) 98%,transparent),transparent);position:relative}
   .mobile-nav-overlay{position:fixed;inset:0;background:rgba(2,8,15,.58);backdrop-filter:blur(3px);z-index:45;opacity:0;pointer-events:none;transition:opacity .2s ease}
   .mobile-nav-overlay.show{opacity:1;pointer-events:auto}
   .topbar{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;margin:0 0 16px;padding:4px 2px 13px;border-bottom:1px solid var(--border)}
@@ -114,7 +114,7 @@ button,a,select,input{touch-action:manipulation}
   .topbar-tools{gap:5px;margin:0!important;align-self:start}
   .icon-btn,.language-select,.top-logout{height:40px;min-height:40px;border-radius:11px}
   .language-select{width:76px;padding:0 7px;font-size:11px}
-  .top-logout{display:none}
+  .top-logout{display:flex;align-items:center;justify-content:center;gap:6px;min-width:40px;height:40px;padding:0 10px;border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:11px;font:inherit;font-size:12px;font-weight:700}.top-logout:hover{border-color:var(--danger);color:var(--danger)}
   .mobile-menu{display:grid!important;width:40px;padding:0;place-items:center}
   .user{display:none!important}
   .grid4,.cards3,.two-col,.formgrid,.grid2,.insight-grid{grid-template-columns:1fr;gap:12px}
@@ -179,12 +179,6 @@ button,a,select,input{touch-action:manipulation}
   .bank-directory th,.bank-directory td{padding:11px 9px}
   .bank-controls{grid-template-columns:1fr!important;gap:8px}
   .bank-feed-meta{display:flex!important}
-  .mobile-bottom-nav{position:fixed;left:8px;right:8px;bottom:8px;height:60px;padding:5px;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--border);border-radius:18px;box-shadow:0 14px 45px rgba(0,0,0,.32);backdrop-filter:blur(18px);z-index:55;padding-bottom:max(5px,env(safe-area-inset-bottom))}
-  .mobile-bottom-nav a,.mobile-bottom-nav button{min-width:0;min-height:48px;border:0;background:transparent;color:var(--muted);border-radius:13px;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit}
-  .mobile-bottom-nav a.active{background:rgba(57,217,138,.11);color:var(--accent)}
-  .mobile-bottom-nav span{font-size:18px;line-height:1}
-  .mobile-bottom-nav small{font-size:9px;line-height:1.1;font-weight:700;white-space:nowrap}
-  .mobile-bottom-nav a:active,.mobile-bottom-nav button:active{transform:scale(.96)}
 }
 @media(max-width:560px){
   .main{padding-left:12px;padding-right:12px}
@@ -206,11 +200,28 @@ button,a,select,input{touch-action:manipulation}
   .home-bottom .section-title{gap:8px}
   .home-bottom .table-wrap{max-height:220px}
 }
+@media(max-width:850px){
+  .sidebar{height:100dvh;max-height:100dvh;overflow:hidden}
+  .nav{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .nav a{flex:0 0 auto}
+  .sidebar-bottom .logout{width:100%;justify-content:flex-start}
+  .topbar-tools{flex-shrink:0}
+  .section-title,.actions{min-width:0}
+  .actions .btn{max-width:100%;white-space:normal}
+  .tag-list,.bank-feed-meta,.comparison-tabs,.filter-row,.category-tabs,.ai-categories{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:8px;padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  .tag-list>* ,.bank-feed-meta>*,.comparison-tabs>*,.filter-row>*,.category-tabs>*,.ai-categories>*{flex:0 0 auto}
+  .tag-list::-webkit-scrollbar,.bank-feed-meta::-webkit-scrollbar,.comparison-tabs::-webkit-scrollbar,.filter-row::-webkit-scrollbar,.category-tabs::-webkit-scrollbar,.ai-categories::-webkit-scrollbar{height:4px}
+  .tag-list::-webkit-scrollbar-thumb,.bank-feed-meta::-webkit-scrollbar-thumb,.comparison-tabs::-webkit-scrollbar-thumb,.filter-row::-webkit-scrollbar-thumb,.category-tabs::-webkit-scrollbar-thumb,.ai-categories::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+  .topbar{padding-right:0}
+}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 @media(hover:none){.dashboard-link:hover,.dashboard-section-link:hover,.bank-card:hover,.nav a:hover,.btn:hover{transform:none;box-shadow:inherit}}
 
-.mobile-bottom-nav,.mobile-nav-overlay{display:none}
+.mobile-nav-overlay{display:none}
 @media(max-width:850px){
   .mobile-nav-overlay{display:block}
-  .mobile-bottom-nav{display:grid}
+}
+@media(max-width:400px){
+  .top-logout{width:40px;padding:0;font-size:0}
+  .top-logout::before{content:"↪";font-size:18px}
 }
