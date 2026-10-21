@@ -547,35 +547,136 @@ async function yahooQuote(symbol){
     const meta=data?.chart?.result?.[0]?.meta||{};
     const price=Number(meta.regularMarketPrice ?? meta.previousClose);
     const prev=Number(meta.previousClose);
+    if(!Number.isFinite(price)) throw new Error(`Yahoo returned no price for ${symbol}`);
     return {symbol,price,previousClose:prev,change:prev?((price-prev)/prev)*100:0,currency:meta.currency||'INR',timestamp:meta.regularMarketTime?new Date(meta.regularMarketTime*1000).toISOString():null,marketState:meta.marketState||'UNKNOWN'};
 }
 
+// Yahoo's public chart endpoint can occasionally reject individual symbols from
+// cloud hosts. TigZig provides a no-key daily market dataset sourced from Yahoo,
+// so it is used as a transparent fallback rather than showing empty cards.
+async function tigzigMarketFallback(symbols){
+    const url=`https://api.tigzig.com/tremor/v1/market_series?symbols=${symbols.map(encodeURIComponent).join(',')}&field=close`;
+    const data=await fetchJson(url);
+    const rows=Array.isArray(data)?data:(Array.isArray(data?.data)?data.data:(Array.isArray(data?.rows)?data.rows:(Array.isArray(data?.series)?data.series:[])));
+    if(!rows.length) throw new Error('TigZig returned no market rows');
+
+    const result={};
+    for(const symbol of symbols){
+      const points=rows.map(r=>({
+        date:r.date||r.datetime||r.timestamp,
+        value:Number(r[symbol] ?? r.values?.[symbol] ?? r.data?.[symbol])
+      })).filter(x=>Number.isFinite(x.value));
+      if(!points.length) continue;
+      const latest=points[points.length-1];
+      const previous=points.length>1?points[points.length-2]:null;
+      result[symbol]={
+        price:latest.value,
+        previousClose:previous?.value ?? latest.value,
+        change:previous?.value ? ((latest.value-previous.value)/previous.value)*100 : 0,
+        timestamp:latest.date?new Date(latest.date).toISOString():null,
+        marketState:'DAILY_REFERENCE',
+        source:'TigZig daily'
+      };
+    }
+    return result;
+}
+
+let marketLastGood=null;
+let marketCache={at:0,data:null};
+
 app.get("/api/market", async (req,res)=>{
-    const items=[];
-    const sources={indices:'Yahoo Finance',metals:'Yahoo Finance',crypto:'CoinGecko'};
+    const now=Date.now();
+    if(marketCache.data && now-marketCache.at < 15000) return res.json(marketCache.data);
+
+    const symbols=[['NIFTY 50','^NSEI','index'],['SENSEX','^BSESN','index'],['GOLD','GC=F','gold'],['SILVER','SI=F','silver']];
     let usdInr=95;
+    let fxSource='Fallback reference';
     try{
       const fx=await fetchJson('https://api.frankfurter.dev/v2/rate/usd/inr');
-      usdInr=Number(fx.rate)||usdInr;
-    }catch(e){}
-    const tasks=[
-      ['NIFTY 50','^NSEI','index'],['SENSEX','^BSESN','index'],['GOLD','GC=F','gold'],['SILVER','SI=F','silver']
-    ];
-    for(const [name,symbol,type] of tasks){
+      const rate=Number(fx.rate);
+      if(Number.isFinite(rate)&&rate>0){usdInr=rate;fxSource='Frankfurter';}
+    }catch(e){
+      try{
+        const fallbackFx=await tigzigMarketFallback(['INR=X']);
+        const rate=Number(fallbackFx['INR=X']?.price);
+        if(Number.isFinite(rate)&&rate>0){usdInr=rate;fxSource='TigZig daily';}
+      }catch(e2){}
+    }
+
+    let fallback={};
+    try{
+      fallback=await tigzigMarketFallback(symbols.map(x=>x[1]));
+    }catch(e){
+      console.warn('TigZig market fallback unavailable:',e.message);
+    }
+
+    const items=[];
+    for(const [name,symbol,type] of symbols){
       try{
         const q=await yahooQuote(symbol);
         const value=type==='index'?q.price:(q.price*usdInr/31.1034768*(type==='gold'?10:1000));
         const unit=type==='gold'?'₹/10g':type==='silver'?'₹/kg':'points';
-        items.push({name,symbol,value,change:q.change,currency:type==='index'?'INR': 'INR',unit,source:sources[type==='index'?'indices':'metals'],timestamp:q.timestamp,marketState:q.marketState,rawPrice:q.price,fx:usdInr});
-      }catch(e){items.push({name,symbol,value:null,change:0,currency:'INR',unit:type==='index'?'points':'reference',source:sources[type==='index'?'indices':'metals'],error:true});}
+        items.push({name,symbol,value,change:q.change,currency:'INR',unit,source:type==='index'?'Yahoo Finance':'Yahoo Finance',timestamp:q.timestamp,marketState:q.marketState,rawPrice:q.price,fx:usdInr,quality:'LIVE'});
+      }catch(e){
+        const q=fallback[symbol];
+        if(q){
+          const value=type==='index'?q.price:(q.price*usdInr/31.1034768*(type==='gold'?10:1000));
+          const unit=type==='gold'?'₹/10g':type==='silver'?'₹/kg':'points';
+          items.push({name,symbol,value,change:q.change,currency:'INR',unit,source:q.source,timestamp:q.timestamp,marketState:q.marketState,rawPrice:q.price,fx:usdInr,quality:'DAILY_FALLBACK'});
+        }else{
+          items.push({name,symbol,value:null,change:null,currency:'INR',unit:type==='index'?'points':'reference',source:'Unavailable',error:true,quality:'UNAVAILABLE'});
+        }
+      }
     }
+
     let crypto=[];
     let cryptoLive=false;
     try{
       const cg=await fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=inr&include_24hr_change=true&include_last_updated_at=true');
-      if(cg.bitcoin){crypto=[{name:'Bitcoin',symbol:'BTC',value:Number(cg.bitcoin.inr),change:Number(cg.bitcoin.inr_24h_change||0),currency:'INR',unit:'BTC',source:'CoinGecko',timestamp:cg.bitcoin.last_updated_at?new Date(cg.bitcoin.last_updated_at*1000).toISOString():null}];cryptoLive=true;}
-    }catch(e){}
-    res.json({updatedAt:new Date().toISOString(),live:{indices:items.filter(x=>x.name==='NIFTY 50'||x.name==='SENSEX').every(x=>x.value!==null),metals:items.filter(x=>x.name==='GOLD'||x.name==='SILVER').every(x=>x.value!==null),crypto:cryptoLive},items,crypto,usdInr});
+      if(cg.bitcoin){crypto=[{name:'Bitcoin',symbol:'BTC',value:Number(cg.bitcoin.inr),change:Number(cg.bitcoin.inr_24h_change||0),currency:'INR',unit:'BTC',source:'CoinGecko',timestamp:cg.bitcoin.last_updated_at?new Date(cg.bitcoin.last_updated_at*1000).toISOString():null,quality:'LIVE'}];cryptoLive=true;}
+    }catch(e){
+      // Keep the most recent process-local Bitcoin value if the public endpoint
+      // is temporarily throttled. It is explicitly marked cached in the UI.
+      if(marketLastGood?.crypto?.[0]) crypto=[{...marketLastGood.crypto[0],source:'VaultQ cache',quality:'CACHED'}];
+    }
+
+    const liveIndices=items.filter(x=>x.name==='NIFTY 50'||x.name==='SENSEX');
+    const liveMetals=items.filter(x=>x.name==='GOLD'||x.name==='SILVER');
+    const fallbackCount=items.filter(x=>x.quality==='DAILY_FALLBACK').length;
+    const unavailableCount=items.filter(x=>x.value==null).length;
+    const allPrimaryLive=items.every(x=>x.quality==='LIVE') && cryptoLive;
+    const hasFallback=fallbackCount>0 || items.some(x=>x.quality==='CACHED') || crypto.some(x=>x.quality==='CACHED');
+
+    const response={
+      updatedAt:new Date().toISOString(),
+      live:{
+        indices:liveIndices.length===2&&liveIndices.every(x=>x.quality==='LIVE'),
+        metals:liveMetals.length===2&&liveMetals.every(x=>x.quality==='LIVE'),
+        crypto:cryptoLive
+      },
+      status:allPrimaryLive?'LIVE':(hasFallback?'LIVE + FALLBACK':'PARTIAL'),
+      fallbackCount,
+      unavailableCount,
+      fxSource,
+      items,
+      crypto,
+      usdInr
+    };
+
+    // Keep the last successful values available for a short outage. Never label
+    // this cache as live; the quality/source fields remain visible to the client.
+    if(items.some(x=>x.value!=null)||crypto.length){
+      marketLastGood={items,crypto,usdInr,fxSource};
+    }
+    if(unavailableCount===4 && !crypto.length && marketLastGood){
+      response.items=marketLastGood.items.map(x=>({...x,source:'VaultQ cache',quality:'CACHED'}));
+      response.crypto=marketLastGood.crypto.map(x=>({...x,source:'VaultQ cache',quality:'CACHED'}));
+      response.usdInr=marketLastGood.usdInr;
+      response.fxSource='VaultQ cache';
+      response.status='CACHED';
+    }
+    marketCache={at:Date.now(),data:response};
+    res.json(response);
 });
 
 app.get("/api/fx", async (req,res)=>{

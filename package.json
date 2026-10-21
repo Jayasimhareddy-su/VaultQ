@@ -1,6 +1,6 @@
 {
   "name": "vaultq",
-  "version": "4.0.0",
+  "version": "4.5.0",
   "description": "VaultQ final professional financial management platform with account-aware AI, market intelligence, multilingual UI and bank comparison",
   "main": "backend/server.js",
   "scripts": {

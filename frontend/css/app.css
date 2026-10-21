@@ -86,3 +86,131 @@
 @media(max-width:560px){.topbar-tools{gap:6px}.language-select{max-width:92px}.topbar .user{display:none}}
 /* Home 4.4: simpler, cleaner dashboard */
 .home-kpis{margin-bottom:14px}.home-kpis .stat{min-height:126px;padding:20px}.home-kpis .stat h2{font-size:28px;margin:9px 0 5px}.home-market{margin:0 0 14px;padding:18px}.home-market .market-cards{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.home-market .market-card{padding:13px;border-radius:14px}.home-market .market-card strong{font-size:18px;margin:11px 0 5px}.home-overview{padding:18px;margin-bottom:14px}.home-overview .section-title{margin-bottom:10px}.home-pulse{margin:0;grid-template-columns:repeat(4,1fr);gap:9px}.home-pulse .pulse-card{padding:14px;border-radius:14px;background:var(--panel2)}.home-pulse .pulse-card strong{font-size:20px;margin:6px 0 3px}.dashboard-main-grid{gap:14px;margin-bottom:14px}.dashboard-main-grid .card{padding:18px}.home-bottom{gap:14px}.home-bottom>.card{padding:18px}.home-bottom .hero-banner.compact{margin-top:12px;padding:14px}.home-bottom .health-list{gap:7px}.home-bottom .health-list a{padding:11px 12px;border-radius:12px}.home-bottom .table-wrap{max-height:290px;overflow:auto}.home-bottom table{min-width:520px}@media(max-width:1200px){.home-market .market-cards{grid-template-columns:repeat(3,1fr)}.home-pulse{grid-template-columns:repeat(2,1fr)}}@media(max-width:850px){.home-market .market-cards{grid-template-columns:repeat(2,1fr)}.home-pulse{grid-template-columns:1fr}.home-kpis .stat{min-height:118px}.home-bottom{gap:12px}}@media(max-width:560px){.home-market .market-cards{grid-template-columns:1fr}.home-overview,.home-market,.home-bottom>.card,.dashboard-main-grid .card{padding:15px}}
+
+/* VaultQ Mobile Experience 4.6: compact, touch-first, smooth mobile UI */
+html{scroll-padding-top:18px;-webkit-text-size-adjust:100%}
+body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+button,a,select,input{touch-action:manipulation}
+@media(max-width:850px){
+  :root{--mobile-gutter:14px}
+  body{padding-bottom:76px}
+  body.nav-open{overflow:hidden}
+  .main{width:100%;max-width:none;margin:0;padding:14px var(--mobile-gutter) 24px}
+  .sidebar{width:min(320px,88vw);padding:18px 12px;transform:translateX(-110%);border-right:1px solid var(--border);box-shadow:18px 0 60px rgba(0,0,0,.35);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+  .sidebar.open{transform:translateX(0)}
+  .brand{padding:2px 9px 20px;font-size:21px}
+  .brand-icon{width:40px;height:40px;border-radius:12px}
+  .nav{gap:3px;overflow-y:auto;padding-right:2px}
+  .nav a,.logout{min-height:46px;padding:12px 13px;border-radius:12px}
+  .nav a.active{box-shadow:inset 3px 0 var(--accent)}
+  .sidebar-bottom{padding-top:12px}
+  .mobile-nav-overlay{position:fixed;inset:0;background:rgba(2,8,15,.58);backdrop-filter:blur(3px);z-index:45;opacity:0;pointer-events:none;transition:opacity .2s ease}
+  .mobile-nav-overlay.show{opacity:1;pointer-events:auto}
+  .topbar{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;margin:0 0 16px;padding:4px 2px 13px;border-bottom:1px solid var(--border)}
+  .topbar>div:first-child{min-width:0}
+  .topbar h1{font-size:clamp(23px,7vw,30px);line-height:1.08;max-width:100%;overflow-wrap:anywhere}
+  .topbar p{font-size:12px;line-height:1.45;max-width:44ch;margin-top:6px}
+  .topbar .eyebrow{font-size:10px;margin-bottom:6px}
+  .topbar-tools{gap:5px;margin:0!important;align-self:start}
+  .icon-btn,.language-select,.top-logout{height:40px;min-height:40px;border-radius:11px}
+  .language-select{width:76px;padding:0 7px;font-size:11px}
+  .top-logout{display:none}
+  .mobile-menu{display:grid!important;width:40px;padding:0;place-items:center}
+  .user{display:none!important}
+  .grid4,.cards3,.two-col,.formgrid,.grid2,.insight-grid{grid-template-columns:1fr;gap:12px}
+  .card,.bank-card,.goal{border-radius:17px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,.12)}
+  .stat{min-height:112px}
+  .stat h2{font-size:27px;margin:10px 0 5px}
+  .dashboard-stats .stat{min-height:112px}
+  .label{font-size:12px}
+  .section-title{align-items:flex-start;margin-bottom:13px;gap:10px}
+  .section-title h2{font-size:18px;line-height:1.2}
+  .section-title p{font-size:12px;line-height:1.4}
+  .section-title>.actions,.section-title>.bank-feed-meta{flex-wrap:wrap}
+  .hero-banner{padding:17px;border-radius:17px;margin-bottom:12px}
+  .hero-banner h2{font-size:22px;line-height:1.15}
+  .hero-banner p{font-size:12px;line-height:1.45}
+  .actions{flex-wrap:wrap;gap:8px;margin-top:12px}
+  .btn{min-height:42px;padding:10px 13px;border-radius:11px}
+  .field input,.field select,.search{min-height:44px;border-radius:11px;font-size:16px}
+  .chartbox{height:240px}
+  .allocation{min-height:0;padding:10px 0;gap:18px}
+  .donut{width:145px;height:145px}
+  .donut:after{width:91px;height:91px}
+  .legend{width:100%;gap:9px}
+  .table-wrap,.bank-table-wrap{border-radius:13px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  table{min-width:620px}
+  th,td{padding:11px 10px;font-size:12px}
+  .empty{padding:28px 16px}
+  .toast{left:14px;right:14px;bottom:88px;text-align:center}
+  .modal-backdrop{padding:12px}
+  .modal{max-height:calc(100dvh - 24px);overflow:auto;border-radius:18px;padding:18px}
+  .market-cards{grid-template-columns:1fr 1fr!important;gap:9px}
+  .market-card{min-width:0;padding:13px;border-radius:14px!important}
+  .market-card strong{font-size:19px;line-height:1.1;overflow-wrap:anywhere}
+  .market-source{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .market-bottom{font-size:12px}
+  .home-kpis .stat{min-height:105px;padding:17px}
+  .home-kpis .stat h2{font-size:25px;margin:8px 0 4px}
+  .home-market,.home-overview,.home-bottom>.card,.dashboard-main-grid .card{padding:14px;border-radius:17px}
+  .home-market .market-cards{grid-template-columns:1fr 1fr!important;gap:8px}
+  .home-pulse{grid-template-columns:1fr 1fr;gap:8px}
+  .home-pulse .pulse-card{min-height:104px;padding:13px;border-radius:14px}
+  .home-pulse .pulse-card strong{font-size:19px}
+  .home-bottom .table-wrap{max-height:240px}
+  .dashboard-main-grid{gap:12px;margin-bottom:12px}
+  .dashboard-main-grid .chartbox{height:220px}
+  .health-list a{min-height:62px}
+  .bank-picker{grid-template-columns:1fr;gap:12px}
+  .bank-card{padding:16px;border-radius:18px}
+  .bank-card-head{gap:11px;margin-bottom:14px}
+  .bank-mark{width:48px;height:48px;flex-basis:48px;border-radius:14px}
+  .bank-card-title h3{font-size:18px}
+  .bank-select{font-size:11px}
+  .peak-rate-box{padding:14px 15px;border-radius:15px;margin-bottom:10px}
+  .peak-rate-box strong{font-size:25px}
+  .bank-rate-grid{gap:7px}
+  .bank-rate-grid>div{padding:10px 7px;border-radius:12px}
+  .bank-rate-grid small{font-size:10px}
+  .bank-rate-grid strong{font-size:15px}
+  .bank-card-foot{margin-top:12px;padding-top:12px}
+  .comparison-end{border-radius:18px}
+  .bank-directory{min-width:980px}
+  .bank-directory th,.bank-directory td{padding:11px 9px}
+  .bank-controls{grid-template-columns:1fr!important;gap:8px}
+  .bank-feed-meta{display:flex!important}
+  .mobile-bottom-nav{position:fixed;left:8px;right:8px;bottom:8px;height:60px;padding:5px;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--border);border-radius:18px;box-shadow:0 14px 45px rgba(0,0,0,.32);backdrop-filter:blur(18px);z-index:55;padding-bottom:max(5px,env(safe-area-inset-bottom))}
+  .mobile-bottom-nav a,.mobile-bottom-nav button{min-width:0;min-height:48px;border:0;background:transparent;color:var(--muted);border-radius:13px;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit}
+  .mobile-bottom-nav a.active{background:rgba(57,217,138,.11);color:var(--accent)}
+  .mobile-bottom-nav span{font-size:18px;line-height:1}
+  .mobile-bottom-nav small{font-size:9px;line-height:1.1;font-weight:700;white-space:nowrap}
+  .mobile-bottom-nav a:active,.mobile-bottom-nav button:active{transform:scale(.96)}
+}
+@media(max-width:560px){
+  .main{padding-left:12px;padding-right:12px}
+  .topbar{grid-template-columns:minmax(0,1fr) auto}
+  .topbar h1{font-size:24px}
+  .topbar-tools{gap:4px}
+  .language-select{width:72px}
+  .market-cards,.home-market .market-cards{grid-template-columns:1fr!important}
+  .home-pulse{grid-template-columns:1fr 1fr}
+  .section-title{flex-direction:column}
+  .section-title>.api-badge,.section-title>.pill,.section-title>.actions{align-self:flex-start}
+  .section-title .actions{width:100%}
+  .section-title .actions .btn{flex:1}
+  .dashboard-main-grid .section-title{flex-direction:column}
+  .dashboard-main-grid .chartbox{height:205px}
+  .allocation{align-items:center}
+  .legend{font-size:12px}
+  .home-bottom .section-title a.btn{width:100%}
+  .home-bottom .section-title{gap:8px}
+  .home-bottom .table-wrap{max-height:220px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+@media(hover:none){.dashboard-link:hover,.dashboard-section-link:hover,.bank-card:hover,.nav a:hover,.btn:hover{transform:none;box-shadow:inherit}}
+
+.mobile-bottom-nav,.mobile-nav-overlay{display:none}
+@media(max-width:850px){
+  .mobile-nav-overlay{display:block}
+  .mobile-bottom-nav{display:grid}
+}
