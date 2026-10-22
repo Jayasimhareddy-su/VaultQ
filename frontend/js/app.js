@@ -13,9 +13,9 @@ const translations={
 };
 let languageGuard=false;
 function applyLanguage(lang){const dict=translations[lang]||translations.en;languageGuard=true;document.querySelectorAll("[data-i18n]").forEach(n=>{const k=n.dataset.i18n;if(dict[k])n.textContent=dict[k]});document.querySelectorAll("body *").forEach(n=>{if(n.children.length)return;const key=n.textContent.trim();if(dict[key])n.textContent=dict[key];if(n.placeholder&&dict[n.placeholder])n.placeholder=dict[n.placeholder];if(n.title&&dict[n.title])n.title=dict[n.title]});localStorage.setItem("vaultq-language",lang);document.documentElement.lang=lang;languageGuard=false}
-function setupAppearance(){const theme=localStorage.getItem("vaultq-theme")||"dark";document.documentElement.dataset.theme=theme;const saved=localStorage.getItem("vaultq-language")||"en";const top=document.querySelector(".topbar");if(top&&!document.querySelector(".topbar-tools")){const tools=document.createElement("div");tools.className="topbar-tools";tools.innerHTML='<button class="icon-btn" id="themeToggle" title="Toggle theme">☼</button><select class="language-select" id="languageSelect" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="te">తెలుగు</option></select><button class="top-logout" id="topLogout" title="Logout">↪ <span>Logout</span></button><button class="icon-btn mobile-menu" id="mobileMenu" title="Menu">☰</button>';top.appendChild(tools);el("languageSelect").value=saved;el("languageSelect").onchange=()=>{applyLanguage(el("languageSelect").value);window.dispatchEvent(new CustomEvent("vaultq-language-changed",{detail:{lang:el("languageSelect").value}}))};el("themeToggle").onclick=()=>{const n=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=n;localStorage.setItem("vaultq-theme",n)};el("mobileMenu").onclick=()=>setMobileNav(true)};applyLanguage(saved)}
+function setupAppearance(){const theme=localStorage.getItem("vaultq-theme")||"dark";document.documentElement.dataset.theme=theme;const saved=localStorage.getItem("vaultq-language")||"en";const top=document.querySelector(".topbar");if(top&&!document.querySelector(".topbar-tools")){const tools=document.createElement("div");tools.className="topbar-tools";tools.innerHTML='<button class="icon-btn" id="themeToggle" title="Toggle theme">☼</button><select class="language-select" id="languageSelect" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="te">తెలుగు</option></select><button class="icon-btn mobile-menu" id="mobileMenu" title="Menu">☰</button>';top.appendChild(tools);el("languageSelect").value=saved;el("languageSelect").onchange=()=>{applyLanguage(el("languageSelect").value);window.dispatchEvent(new CustomEvent("vaultq-language-changed",{detail:{lang:el("languageSelect").value}}))};el("themeToggle").onclick=()=>{const n=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=n;localStorage.setItem("vaultq-theme",n)};el("mobileMenu").onclick=()=>setMobileNav(true)};applyLanguage(saved)}
 async function user(){const d=await api("/api/me");if(el("userName"))el("userName").textContent=d.user.name;if(el("userInitial"))el("userInitial").textContent=d.user.name.trim()[0]?.toUpperCase()||"V";return d.user}
-function setupNavigation(){const page=document.body.dataset.page;document.querySelectorAll(".nav a").forEach(a=>{if(a.dataset.page===page)a.classList.add("active");a.addEventListener("click",()=>document.querySelector(".sidebar")?.classList.remove("open"))});const doLogout=async()=>{try{await api("/api/logout",{method:"POST"})}finally{location.href="index.html"}};const logout=el("logout");if(logout)logout.onclick=doLogout;const topLogout=el("topLogout");if(topLogout)topLogout.onclick=doLogout}
+function setupNavigation(){const page=document.body.dataset.page;document.querySelectorAll(".nav a").forEach(a=>{if(a.dataset.page===page)a.classList.add("active");a.addEventListener("click",()=>setMobileNav(false))});const doLogout=async()=>{try{await api("/api/logout",{method:"POST"})}finally{location.href="index.html"}};const logout=el("logout");if(logout)logout.onclick=doLogout;const close=el("drawerClose");if(close)close.onclick=()=>setMobileNav(false)}
 setupAppearance();setupNavigation();
 if(document.body.dataset.page&&!['login','register'].includes(document.body.dataset.page)){user().catch(()=>{if(!location.pathname.endsWith('login.html'))location.href='login.html'})}
 
@@ -29,6 +29,24 @@ function setMobileNav(open){
 }
 function setupMobileExperience(){
   if(["login","register"].includes(document.body.dataset.page))return;
+  const sidebar=document.querySelector(".sidebar");
+  if(sidebar&&!el("drawerClose")){
+    const close=document.createElement("button");
+    close.id="drawerClose";
+    close.className="drawer-close";
+    close.type="button";
+    close.setAttribute("aria-label","Close navigation");
+    close.innerHTML="×";
+    close.addEventListener("click",()=>setMobileNav(false));
+    const brand=sidebar.querySelector(".brand");
+    if(brand){
+      const head=document.createElement("div");
+      head.className="drawer-head";
+      brand.parentNode.insertBefore(head,brand);
+      head.appendChild(brand);
+      head.appendChild(close);
+    }else{sidebar.insertBefore(close,sidebar.firstChild)}
+  }
   if(!el("mobileNavOverlay")){
     const overlay=document.createElement("div");
     overlay.id="mobileNavOverlay";
